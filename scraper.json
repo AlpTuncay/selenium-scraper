@@ -1,0 +1,7 @@
+[
+  {
+    "brand": "volvo",
+    "models": ["v40", "xc60", "s40"],
+    "keywords": ["front", "rear", "side", "top"]
+  }
+]
