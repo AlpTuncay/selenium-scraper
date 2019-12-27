@@ -3,5 +3,25 @@
     "brand": "volvo",
     "models": ["v40", "xc60", "s40"],
     "keywords": ["front", "rear", "side", "top"]
+  },
+  {
+    "brand": "bmw",
+    "models": ["116", "320", "520"],
+    "keywords": ["front", "rear", "side", "top"]
+  },
+  {
+    "brand": "audi",
+    "models": ["a3", "a4", "q7"],
+    "keywords": ["front", "rear", "side", "top"]
+  },
+  {
+    "brand": "volkswagen",
+    "models": ["golf", "polo", "passat", "jetta"],
+    "keywords": ["front", "rear", "side", "top"]
+  },
+  {
+    "brand": "renault",
+    "models": ["megane", "fluence", "captur", "clio"],
+    "keywords": ["front", "rear", "side", "top"]
   }
 ]

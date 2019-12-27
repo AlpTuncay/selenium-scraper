@@ -19,7 +19,7 @@ class ScrapeGoogleImages:
             'extract_metadata': False,
             'thumbnail': False,
             'no_download': False,
-            'limit': 150,
+            'limit': 50,
             'chromedriver': "/home/alp/Desktop/chromedriver"
         }
 
@@ -45,23 +45,26 @@ class ScrapeGoogleImages:
                     self.arguments["image_directory"] = img_path
 
                     for keyword in cfg["keywords"]:
-                        query_term = f"{cfg['brand']} {model} {keyword}"
+                        query_term = f"{cfg['brand']} {model} {keyword} stock"
                         self.arguments["keywords"] = query_term
                         paths = self.downloader.download(self.arguments)
                         logging.info(f"Path: {paths}")
                         if self.external_drive:
                             for keys, vals in paths.items():
                                 for val in vals:
-                                    rel_path = os.path.relpath(val, "/home/alp/PycharmProjects/web-image-scraper")
-                                    external_full_path = os.path.join(self.external_drive, os.path.dirname(rel_path))
-                                    if not os.path.exists(external_full_path):
-                                        os.makedirs(external_full_path)
                                     try:
-                                        shutil.copy(val, external_full_path)
-                                        os.remove(val)
-                                    except Exception as e:
-                                        logging.error(f"Error occurred while copying to external drive. Full exception:\n{e}")
-                                        raise e
+                                        rel_path = os.path.relpath(val, "/home/alp/PycharmProjects/web-image-scraper")
+                                        external_full_path = os.path.join(self.external_drive, os.path.dirname(rel_path))
+                                        if not os.path.exists(external_full_path):
+                                            os.makedirs(external_full_path)
+                                        try:
+                                            shutil.copy(val, external_full_path)
+                                            os.remove(val)
+                                        except Exception as e:
+                                            logging.error(f"Error occurred while copying to external drive. Full exception:\n{e}")
+                                            raise e
+                                    except:
+                                        continue
             except KeyError as ke:
                 logging.error(f"Provided key does not exist. Full exception:\n{ke}")
 
