@@ -1,7 +1,12 @@
 from selenium.webdriver import Chrome
-import urllib
-import os
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
+from urllib.request import urlretrieve
+from urllib.parse import urlparse
+import os
+import re
 
 class SeleniumScraper:
 
@@ -12,7 +17,7 @@ class SeleniumScraper:
 
         self.url = "http://www.izmostock.com/car-stock-photos-by-brand"
         # self.car_brands = ["Volvo", "BMW", "Audi", "Renault"]
-        self.models = {"Audi": ["A1", "A3", "Q7", "A4"], "Volvo": ["V40", "XC60", "S40"], "BMW": ["116", "320"]}
+        self.models = {"Audi": ["A1", "A3", "Q7", "A4"], "Volvo": ["V40", "XC60", "S40"], "BMW": ["118", "320", "520"]}
 
     def init_driver(self):
         if not os.path.exists(self.driver_path):
@@ -25,40 +30,44 @@ class SeleniumScraper:
 
         self.driver.get(self.url)
         root = self.driver.find_elements_by_xpath("//div[@id='by_brand']")
-        # print(root)
-        for brand_caption in root:
-            for brand in brand_caption.find_elements_by_xpath(".//span[@id='by_brand_caption']"):
-                brand_text_value = brand.text
-                if brand_text_value in self.models:
-                    print(brand_text_value)
-                    url_to_brand = brand_caption.find_element_by_xpath(".//a").get_attribute('href')
-                    print(f"Brand urls: {url_to_brand}")
-                    self.driver.get(url_to_brand)
-                    model_info_list = self.driver.find_elements_by_xpath("//td[@valign='top']/a")
-                    for model_info in model_info_list:
-                        check = self.check_brand_and_model(brand_text_value, model_info.text)
-                        if check[0]:
-                            model = check[1]
-                            print(model_info.get_attribute("title"))
-                            self.driver.get(model_info.get_attribute("href"))
-                            hrefs_to_images = self.driver.find_elements_by_xpath("//td[@class='slide']/a")
-                            for href in hrefs_to_images:
-                                url_to_image = href.get_attribute('href')
-                                self.driver.get(url_to_image)
-                                image_src = self.driver.find_element_by_xpath("//div[@class='imageWidget']//img").get_attribute("src")
-                                download_path = os.path.join(self.download_path, str.lower(brand_text_value), str.lower(model))
-                                # urllib.urlretrieve(image_src, "")
-                                print(image_src)
-                                print(download_path)
+        brand_texts_links = {}
+        for r in root:
+            brand_texts_links[r.find_element_by_xpath(".//span[@id='by_brand_caption']").text] = r.find_element_by_xpath(".//a").get_attribute("href")
+
+        for brand, link in brand_texts_links.items():
+            if brand in self.models:
+                self.driver.get(link)
+                model_info_list = self.driver.find_elements_by_xpath("//td[@valign='top']/a")
+                links_to_models = [model_info.get_attribute("href") for model_info in model_info_list]
+                model_infos = [model_info.text for model_info in model_info_list]
+                for link_to_model, model_info in zip(links_to_models, model_infos):
+                    check = self.check_brand_and_model(brand, model_info)
+                    if check[0]:
+                        model = check[1]
+                        self.driver.get(link_to_model)
+                        hrefs_to_images = self.driver.find_elements_by_xpath("//td[@class='slide']/a")
+                        hrefs = [href.get_attribute("href") for href in hrefs_to_images]
+                        for href in hrefs:
+                            self.driver.get(href)
+                            image_src = self.driver.find_element_by_xpath("//div[@class='imageWidget']//img").get_attribute("src")
+                            download_path = os.path.join(self.download_path, str.lower(brand), str.lower(model))
+                            if not os.path.exists(download_path):
+                                os.makedirs(download_path)
+                            parsed_url = urlparse(image_src).path
+                            filename = os.path.basename(parsed_url)
+                            download_path = f"{download_path}/{filename}"
+                            urlretrieve(image_src, download_path)
 
     def check_brand_and_model(self, brand, model_info_from_page):
-        bool_list = []
-        length = None
+        print(f"Brand: {brand},\tModel: {self.models[brand]},\tInfo from page: {model_info_from_page}")
         for model in self.models[brand]:
-            if model in model_info_from_page:
+            print(f"Checking for model: {model}")
+            expr_to_match = re.compile(rf"{model}[a-zA-Z0-9]?")
+            if expr_to_match.search(model_info_from_page):
+                print(f"Values returned: {True} and {model}")
                 return True, model
-            else:
-                return False, model
+        print(f"Values returned: {False}")
+        return False, None
 
 
 if __name__ == '__main__':
