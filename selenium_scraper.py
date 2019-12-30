@@ -1,13 +1,13 @@
 from selenium.webdriver import Chrome
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
 
 from urllib.request import urlretrieve
 from urllib.parse import urlparse
 import os
 import re
 
+'''
+Scraper that uses Selenium to scrape specifically izmostock for stock car photos.
+'''
 class SeleniumScraper:
 
     def __init__(self, driver_path, download_path):
@@ -16,8 +16,8 @@ class SeleniumScraper:
         self.download_path = download_path
 
         self.url = "http://www.izmostock.com/car-stock-photos-by-brand"
-        # self.car_brands = ["Volvo", "BMW", "Audi", "Renault"]
-        self.models = {"Audi": ["A1", "A3", "Q7", "A4"], "Volvo": ["V40", "XC60", "S40"], "BMW": ["118", "320", "520"]}
+        # self.models = {"Audi": ["A1", "A3", "Q7", "A4"], "Volvo": ["V40", "XC60", "S40"], "BMW": ["118", "320", "520"], "Volkswagen": ["Golf", "Polo", "Passat"]}
+        self.models = {"Volkswagen": ["Golf", "Polo", "Passat"]}
 
     def init_driver(self):
         if not os.path.exists(self.driver_path):
