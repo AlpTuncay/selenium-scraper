@@ -16,8 +16,11 @@ class SeleniumScraper:
         self.download_path = download_path
 
         self.url = "http://www.izmostock.com/car-stock-photos-by-brand"
-        # self.models = {"Audi": ["A1", "A3", "Q7", "A4"], "Volvo": ["V40", "XC60", "S40"], "BMW": ["118", "320", "520"], "Volkswagen": ["Golf", "Polo", "Passat"]}
-        self.models = {"Volkswagen": ["Golf", "Polo", "Passat"]}
+        self.models = {"Audi": ["A1", "A3", "Q7", "A4"],
+                       "Volvo": ["V40", "XC60", "S40"],
+                       "BMW": ["118", "320", "520"],
+                       "Volkswagen": ["Golf", "Polo", "Passat"],
+                       "Renault": ["Megane", "Kadjar", "Captur", "Clio"]}
 
     def init_driver(self):
         if not os.path.exists(self.driver_path):
