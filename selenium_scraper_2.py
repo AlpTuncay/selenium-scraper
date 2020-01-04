@@ -7,7 +7,7 @@ import re
 import time
 
 '''
-Scraper that uses Selenium to scrape specifically for stock car photos.
+Scraper that uses Selenium to scrape specifically sahibinden.com for stock car photos.
 '''
 class SeleniumScraper:
 
@@ -16,13 +16,14 @@ class SeleniumScraper:
         self.driver = None
         self.download_path = download_path
 
-        self.url = "http://www.google.com/imghp"
+        self.urls = ["https://www.sahibinden.com/kategori/otomobil", "https://www.sahibinden.com/kategori/arazi-suv-pickup"]
         self.models = {"Audi": ["A1", "A3", "Q7", "A4"],
-                       "Volvo": ["V40", "XC60", "S40"],
-                       "BMW": ["118", "320", "520"],
+                       "Volvo": ["V40", "XC60", "XC90"],
+                       "BMW": {"1 serisi": ["118"],
+                               "3 serisi": ["320", "330"]},
                        "Volkswagen": ["Golf", "Polo", "Passat"],
                        "Renault": ["Megane", "Kadjar", "Captur", "Clio"]}
-        self.keywords = ["front", "back", "side"]
+
         self.download_limit = 50
 
     def init_driver(self):
@@ -34,22 +35,37 @@ class SeleniumScraper:
     def scrape(self):
         self.init_driver()
 
-        self.driver.get(self.url)
+        for url in self.urls:
+            self.driver.get(url)
 
-        for brand in self.models:
-            for model in self.models[brand]:
-                for keyword in self.keywords:
-                    search_box = self.driver.find_element_by_name("q")
-                    search_term = f"{brand} {model} {keyword}"
-                    search_box.send_keys(search_term)
-                    search_box.submit()
-                    downloaded = 0
-                    image_boxes = self.driver.find_elements_by_xpath("//a[@class='rg_l'][ @jsname='hSRGPd']")
-                    time.sleep(10)
-                    while downloaded < self.download_limit:
-                        for image_box in image_boxes:
-                            image_box.click()
-                    self.driver.back()
+            try:
+                car_make_list = self.driver.find_elements_by_xpath("//div[@data-value='Otomobil']//ul[@class='categoryList jspScrollable']//li/a")
+            except:
+                car_make_list = self.driver.find_elements_by_xpath("//div[@data-value='Arazi, SUV & Pickup']//ul[@class='categoryList jspScrollable']//li/a")
+
+            brand_text_links = {}
+            for web_element in car_make_list:
+                model = web_element.get_attribute("title")
+                if model in self.models:
+                    brand_text_links[model] = web_element.get_attribute("href")
+
+            for brand, link in brand_text_links.items():
+                # if brand in self.models:
+                self.driver.get(link)
+                model_list = self.driver.find_elements_by_xpath("//div[@id='searchCategoryContainer']/div/div/ul/li/a")
+                links_to_models = [model.get_attribute("href") for model in model_list]
+                model_infos = [model.get_attribute("title") for model in model_list]
+                for link_to_model, model_info in zip(links_to_models, model_infos):
+                    # if isinstance(self.models[brand], dict):
+                    #     pass
+                    # else:
+                    check = self.check_brand_and_model(brand, model_info)
+
+                    if check[0]:
+                        model = check[1]
+                        self.driver.get(link_to_model)
+
+
 
     def check_brand_and_model(self, brand, model_info_from_page):
         print(f"Brand: {brand},\tModel: {self.models[brand]},\tInfo from page: {model_info_from_page}")

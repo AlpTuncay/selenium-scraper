@@ -17,8 +17,8 @@ class SeleniumScraper:
 
         self.url = "http://www.izmostock.com/car-stock-photos-by-brand"
         self.models = {"Audi": ["A1", "A3", "Q7", "A4"],
-                       "Volvo": ["V40", "XC60", "S40"],
-                       "BMW": ["118", "320", "520"],
+                       "Volvo": ["V40", "XC60", "XC90"],
+                       "BMW": ["118", "320", "330"],
                        "Volkswagen": ["Golf", "Polo", "Passat"],
                        "Renault": ["Megane", "Kadjar", "Captur", "Clio"]}
 
@@ -53,7 +53,10 @@ class SeleniumScraper:
                         for href in hrefs:
                             self.driver.get(href)
                             image_src = self.driver.find_element_by_xpath("//div[@class='imageWidget']//img").get_attribute("src")
-                            download_path = os.path.join(self.download_path, str.lower(brand), str.lower(model))
+
+                            label = f"{str.lower(brand)} {str.lower(model)}"
+
+                            download_path = os.path.join(self.download_path, label)
                             if not os.path.exists(download_path):
                                 os.makedirs(download_path)
                             parsed_url = urlparse(image_src).path

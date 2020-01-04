@@ -19,7 +19,7 @@ class ScrapeGoogleImages:
             'extract_metadata': False,
             'thumbnail': False,
             'no_download': False,
-            'limit': 50,
+            'limit': 10,
             'chromedriver': "/home/alp/Desktop/chromedriver"
         }
 
@@ -41,7 +41,8 @@ class ScrapeGoogleImages:
         for cfg in config:
             try:
                 for model in cfg["models"]:
-                    img_path = os.path.join(cfg["brand"], model)
+                    # img_path = os.path.join(cfg["brand"], model)
+                    img_path = f"{cfg['brand']} {model}"
                     self.arguments["image_directory"] = img_path
 
                     for keyword in cfg["keywords"]:
