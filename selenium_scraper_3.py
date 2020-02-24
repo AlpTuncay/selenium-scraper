@@ -9,10 +9,13 @@ from urllib.parse import urlparse
 import os
 import re
 import time
+import sys
 
 '''
 Scraper that uses Selenium to scrape specifically sahibinden.com for stock car photos.
 '''
+
+
 class SeleniumScraper:
 
     def __init__(self, driver_path, download_path):
@@ -20,10 +23,10 @@ class SeleniumScraper:
         self.driver = None
         self.download_path = download_path
 
-        self.urls = ["https://www.sahibinden.com/kategori/otomobil", "https://www.sahibinden.com/kategori/arazi-suv-pickup"]
+        self.urls = ["https://www.sahibinden.com/category/en/cars", "https://www.sahibinden.com/category/en/off-road-suv-pickup-trucks"]
         self.models = {"Audi": ["A3", "Q7", "A4"],
                        "Volvo": ["XC60", "XC90"],
-                       # "BMW": {"3 serisi": ["320"]},
+                       "BMW": ["3 series"],
                        "Volkswagen": ["Golf", "Polo", "Passat"]}
         # self.models = {
         #     "Volvo": ["XC60", "XC90"],
@@ -54,9 +57,9 @@ class SeleniumScraper:
         for url in self.urls:
             self.driver.get(url)
             time.sleep(2)
-            car_make_list = self.driver.find_elements_by_xpath("//div[contains(@data-value, 'Otomobil')]//ul[@class='categoryList jspScrollable']//li/a")
+            car_make_list = self.driver.find_elements_by_xpath("//div[contains(@data-value, 'Cars')]//ul[@class='categoryList jspScrollable']//li/a")
             if not car_make_list:
-                car_make_list = self.driver.find_elements_by_xpath("//div[contains(@data-value, 'Arazi, SUV & Pickup')]//ul[@class='categoryList jspScrollable']//li/a")
+                car_make_list = self.driver.find_elements_by_xpath("//div[contains(@data-value, 'Off-Road, SUV & Pickup Trucks')]//ul[@class='categoryList jspScrollable']//li/a")
 
             brand_text_links = {}
             for web_element in car_make_list:
@@ -74,10 +77,10 @@ class SeleniumScraper:
                     check = self.check_brand_and_model(brand, model_info)
                     if check[0]:
                         model = check[1]
-                        self.driver.get(link_to_model)
-                        nav_buttons = self.driver.find_elements_by_xpath("//ul[@class='pageNaviButtons']/li/following-sibling::li[2]/a")
-                        pages = [nav_button.get_attribute("href") for nav_button in nav_buttons]
                         while self.total_downloads[brand][model] < self.download_limit:
+                            self.driver.get(link_to_model)
+                            nav_buttons = self.driver.find_elements_by_xpath("//ul[@class='pageNaviButtons']/li/following-sibling::li[2]/a")
+                            pages = [nav_button.get_attribute("href") for nav_button in nav_buttons]
                             for page in pages:
                                 self.driver.get(page)
                                 links_to_ads = self.driver.find_elements_by_xpath("//*[@id='searchResultsTable']/tbody/tr/td[1]/a")
@@ -94,11 +97,23 @@ class SeleniumScraper:
                                         parsed_url = urlparse(src).path
                                         filename = os.path.basename(parsed_url)
                                         download_path = f"{download_path}/{filename}"
+                                        if os.path.exists(download_path):
+                                            print(f"Exists: {download_path}")
                                         try:
                                             urlretrieve(src, download_path)
                                             self.total_downloads[brand][model] += 1
+                                            print(self.total_downloads)
                                         except:
                                             continue
+                                    if self.total_downloads[brand][model] >= self.download_limit:
+                                        break
+                                if self.total_downloads[brand][model] >= self.download_limit:
+                                    break
+                            if self.total_downloads[brand][model] >= self.download_limit:
+                                break
+                        # if self.total_downloads[brand][model] >= self.download_limit:
+                        #     pass
+
 
     def check_brand_and_model(self, brand, model_info_from_page):
         print(f"Brand: {brand},\tModel: {self.models[brand]},\tInfo from page: {model_info_from_page}")
@@ -113,5 +128,5 @@ class SeleniumScraper:
 
 
 if __name__ == '__main__':
-    # SeleniumScraper("/home/alp/Desktop/chromedriver", download_path="/media/alp/Yeni Birim/data/car_dataset").scrape()
-    SeleniumScraper("/home/alp/Desktop/chromedriver", download_path="./car_dataset").scrape()
+    SeleniumScraper("/home/alp/Desktop/chromedriver", download_path="/media/alp/Yeni Birim/data/car_dataset_new").scrape()
+    # SeleniumScraper("/home/alp/Desktop/chromedriver", download_path="./car_dataset").scrape()
